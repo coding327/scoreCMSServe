@@ -36,8 +36,37 @@ const jwt = require('jsonwebtoken')
 const secretKey = "FX2301-daydayup"
 
 // 生成token
-exports.createToken = function (data) {  // data 加密的数据
-  return jwt.sign(data, secretKey, { expiresIn: '24h' })
+exports.createToken = function (data) {  // data 要加密的数据
+  return jwt.sign(data, secretKey, { expiresIn: '2h' })
 }
 
-// 解密token
+// 解密token 解密后三种情况
+// 1. token 过期、无效
+// 2. token 不存在
+// 3. token 校验成功
+
+exports.decodeToken = (req, res, callback) => {
+  var token = req.headers.token
+  // 判断有无token
+  if(token) {
+    // 有token就解密
+    jwt.verify(token, secretKey, (err, data) => {
+      if (err) {
+        res.json({
+          code: 3001,
+          msg: 'token无效，请登录',
+          result: null
+        })
+      } else {
+        callback(data) // data是解密后的token , 可以解构出之前加密时你放的数据，username password phone
+      }
+    })
+  } else {
+    res.json({
+      code: 3001,
+      msg: 'token不存在请登录',
+      result: null
+    })
+  }
+}
+

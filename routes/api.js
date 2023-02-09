@@ -1,11 +1,13 @@
 
 var express = require('express')
-var { createToken} = require('../utils/token')
+var { createToken , decodeToken } = require('../utils/token')
+var axios = require('axios')
+var multer = require('multer')
 
 //创建express子路由
 var router = express.Router()
 // 导入表模型结构
-var { GoodModel , UserModel } = require('../db/model')
+var { GoodModel , UserModel, RoleModel } = require('../db/model')
 
 // api测试接口
 // /api/goodlist
@@ -141,38 +143,29 @@ router.post('/login', (req, res) => {
   })
 })
 
-// 找回密码
-router.post('/findpwd', (req, res) => {
+// 发送验证码
+router.post('/sendcaptcha', (req, res) => {
   var body = req.body
   UserModel.findOne({
     phone: body.phone
-  }, {})
+  })
   .then(result => {
     if (result) {
-      UserModel.updateOne({
-        phone: body.phone
-      }, {
-        password: body.password
-      })
-      .then(rel => {
+      axios.get("http://121.196.235.163:3000/captcha/sent", {
+        params: body
+      }).then(rel => {
         console.log(rel)
-        if (rel.acknowledged) {
-          res.json({
-            code: 200,
-            msg: '密码更改成功'
-          })
-        } else {
-          res.json({
-            code: 500,
-            err,
-            msg: '密码更改失败'
-          })
-        }
+        res.json({
+          code: 200,
+          msg: '成功',
+          ...rel.data,
+          rel: rel.data
+        })
       })
     } else {
       res.json({
         code: 401,
-        msg: '手机号不存在',
+        msg: '手机号未注册',
         result
       })
     }
@@ -187,5 +180,239 @@ router.post('/findpwd', (req, res) => {
   })
 })
 
+// 验证验证码
+router.post('/checkcaptcha', (req, res) => {
+  var body = req.body
+  UserModel.findOne({
+    phone: body.phone
+  })
+    .then(result => {
+      if (result) {
+        axios.get("http://121.196.235.163:3000/captcha/verify", {
+          params: body
+        }).then(rel => {
+          console.log(rel)
+          if (rel.data.code === 200) {
+            const token = createToken({
+              username: rel.username,
+              password: rel.password,
+              phone: rel.phone
+            })
+            rel.json({
+              code: 200,
+              msg: '验证成功',
+              ...rel.data,
+              rel: rel.data,
+              token
+            })
+          } else {
+            res.json({
+              code: 200,
+              msg: '验证失败',
+              ...rel.data,
+              rel: rel.data
+            })
+          }
+        })
+      } else {
+        res.json({
+          code: 401,
+          msg: '手机号未注册',
+          result
+        })
+      }
+    })
+    .catch(err => {
+      console.log(err)
+      res.json({
+        code: 500,
+        err,
+        msg: '服务器异常'
+      })
+    })
+})
+
+// 找回密码
+router.post('/findpwd', (req, res) => {
+  var body = req.body
+  UserModel.findOne({
+    phone: body.phone
+  }, {})
+  .then(result => {
+    if (result) {
+      // 发送验证码进行验证
+      axios.get("http://121.196.235.163:3000/captcha/verify", {
+        params: body
+      }).then(rel => {
+        console.log(rel)
+        if (rel.data.code === 200) {
+          const token = createToken({
+            username: rel.username,
+            password: rel.password,
+            phone: rel.phone
+          })
+          UserModel.updateMany({
+            phone: body.phone
+          }, {
+            $set: {
+              password: body.password
+            }
+          })
+          .then(rel => {
+            console.log(rel)
+              res.json({
+                code: 200,
+                msg: '密码更改成功'
+              })
+          })
+        } else {
+          res.json({
+            code: 200,
+            msg: '验证失败',
+            ...rel.data,
+            rel: rel.data
+          })
+        }
+      })
+    } else {
+      res.json({
+        code: 401,
+        msg: '手机号未注册',
+        result
+      })
+    }
+  })
+  .catch(err => {
+    console.log(err)
+    res.json({
+      code: 500,
+      err,
+      msg: '服务器异常'
+    })
+  })
+})
+
+// 首页获取用户信息【首页发get请求，token解密】
+// router.get('/getUserInfo', (req, res) => {
+//   // 根据token获取，username phone password
+//   decodeToken(req, res, ({username}) => {
+//     UserModel.findOne({
+//       username
+//     })
+//     .then(result => {
+//       res.json({
+//         code: 200,
+//         msg: '查询成功'
+//       })
+//     })
+//     .catch(err => {
+//       console.log(err)
+//       res.json({
+//         code: 500,
+//         err,
+//         msg: '服务器异常'
+//       })
+//     })
+//   })
+// })
+
+// 获取用户信息
+// router.get('/getuserinfo',(req,res)=>{
+//     // 根据 token username phone 
+//     decodeToken(req,res, ({ username })=>{
+//         UserModel.findOne({
+//             username
+//         })
+//         .then(result=>{
+//             res.json({
+//                 code:200,
+//                 msg:'查询成功',
+//                 result 
+//             })
+//         })  
+//         .catch(err=>{
+//             console.log(err)
+//             res.json({
+//                 code:500,
+//                 err,
+//                 msg:'服务器异常'
+//             })
+//         })
+//     })
+// })
+
+router.get('/getuserinfo', (req, res) => {
+  // 根据 token username phone
+  decodeToken(req, res, async ({ username }) => {
+    let userInfo = await UserModel.findOne({
+      username
+    }, { _id: 0 })
+
+    let role = await RoleModel.findOne({
+      value: userInfo.role
+    }, { _id: 0 })
+
+    res.json({
+      code: 200,
+      msg: '查询成功',
+      result: {
+        userInfo,
+        role
+      }
+    })
+  })
+})
+
+// 上传文件
+const storage = multer.diskStorage({
+  //保存路径
+  destination: function (req, file, cb) {
+    cb(null, 'public/upload')
+    //注意这里的文件路径,不是相对路径，直接填写从项目根路径开始写就行了
+  },
+  //保存在 destination 中的文件名
+  filename: function (req, file, cb) {
+    cb(null, "cake" + '-' + Date.now() + '-' + file.originalname)
+  }
+})
+const upload = multer({ storage: storage }).any()   // 任何文件格式
+
+router.post('/uploadfile', upload, (req, res) => {
+  var path = req.files[0].path
+  res.json({
+    code: 200,
+    msg: '上传成功',
+    path,
+    result: path,
+  })
+})
+
+
+// 修改用户信息
+router.post("/changeuserinfo", (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ username }) => {
+    UserModel.updateMany({
+      username
+    }, {
+      $set: body
+    })
+      .then(result => {
+        res.json({
+          code: 200,
+          msg: '修改成功',
+          result
+        })
+      })
+      .catch(err => {
+
+        res.json({
+          code: 500,
+          err,
+          msg: '服务器异常'
+        })
+      })
+  })
+})
 
 module.exports = router

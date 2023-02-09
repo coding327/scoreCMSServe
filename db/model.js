@@ -22,6 +22,14 @@ const User_Schema = new Schema({
   time: Date // 记录注册插入数据的时间
 })
 
+const Role_Schema = new Schema({
+  id: Number,
+  label: String,
+  value: Number,
+  menus: Array,
+  color: String
+})
+
 // model 表模型对象  操作数据库 操作文档
 // 参数1: 表名【写复数】
 // 参数2: Schema名称
@@ -33,3 +41,4 @@ exports.GoodModel = mongoose.model('goods', Good_Schema)
 // city = cities
 
 exports.UserModel = mongoose.model('users', User_Schema)
+exports.RoleModel = mongoose.model('roles', Role_Schema)
