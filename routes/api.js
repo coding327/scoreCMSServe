@@ -7,7 +7,9 @@ var multer = require('multer')
 //创建express子路由
 var router = express.Router()
 // 导入表模型结构
-var { GoodModel , UserModel, RoleModel } = require('../db/model')
+var { GoodModel, UserModel, RoleModel, SubjectModel } = require('../db/model')
+// 插入数据
+var { insertDataFromTable, findAllDataFromTable, findOneDataFromTable } = require('../db/index')
 
 // api测试接口
 // /api/goodlist
@@ -387,7 +389,6 @@ router.post('/uploadfile', upload, (req, res) => {
   })
 })
 
-
 // 修改用户信息
 router.post("/changeuserinfo", (req, res) => {
   var body = req.body
@@ -414,5 +415,51 @@ router.post("/changeuserinfo", (req, res) => {
       })
   })
 })
+
+// 学科添加
+router.post('/subjectadd', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    let result = await findOneDataFromTable({
+      model: SubjectModel,
+      res,
+      query: {
+        $or: [
+          {
+            label: body.label,
+          },
+          {
+            subjectCode: body.subjectCode
+          }
+        ]
+      },
+      next: 1
+    })
+    if (!result) {
+      insertDataFromTable({
+        model: SubjectModel,
+        res,
+        data: body
+      })
+    } else {
+      res.json({
+        code: 401,
+        msg: '学科已经存在,请重新修改再操作',
+      })
+    }
+  })
+})
+
+router.post('/getallsubject', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ username }) => {
+    findAllDataFromTable({
+      model: SubjectModel,
+      res,
+    })
+  })
+})
+
+
 
 module.exports = router

@@ -2,6 +2,15 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+// model 表模型对象  操作数据库 操作文档
+// 参数1: 表名【写复数】
+// 参数2: Schema名称
+// 一定要写复数
+// goods = goods
+// good = goodes
+// good1 = good1
+// city = cities
+
 // Schema 定义表结构
 const Good_Schema = new Schema({
   "name": String,
@@ -30,15 +39,13 @@ const Role_Schema = new Schema({
   color: String
 })
 
-// model 表模型对象  操作数据库 操作文档
-// 参数1: 表名【写复数】
-// 参数2: Schema名称
-exports.GoodModel = mongoose.model('goods', Good_Schema)
-// 一定要写复数
-// goods = goods
-// good = goodes
-// good1 = good1
-// city = cities
+const Subject_Schema = new Schema({
+  label: String,
+  subjectCode: String
+})
 
+
+exports.GoodModel = mongoose.model('goods', Good_Schema)
 exports.UserModel = mongoose.model('users', User_Schema)
 exports.RoleModel = mongoose.model('roles', Role_Schema)
+exports.SubjectModel = mongoose.model('subjects', Subject_Schema)
