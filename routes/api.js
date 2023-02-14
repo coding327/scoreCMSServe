@@ -1,15 +1,15 @@
 
 var express = require('express')
-var { createToken , decodeToken } = require('../utils/token')
+var { createToken, decodeToken } = require('../utils/token')
 var axios = require('axios')
 var multer = require('multer')
 
 //创建express子路由
 var router = express.Router()
 // 导入表模型结构
-var { GoodModel, UserModel, RoleModel, SubjectModel } = require('../db/model')
+var { GoodModel, UserModel, RoleModel, SubjectModel, ClassModel, AnnoModel } = require('../db/model')
 // 插入数据
-var { insertDataFromTable, findAllDataFromTable, findOneDataFromTable } = require('../db/index')
+var { insertDataFromTable, findAllDataFromTable, findOneDataFromTable, removeDataFromTable, updateDataFromTable } = require('../db/index')
 
 // api测试接口
 // /api/goodlist
@@ -58,36 +58,36 @@ router.post('/register', (req, res) => {
       }
     ]
   }, {})
-  .then(result => {
-    if (result) {
-      // 已经注册过了
-      res.json({
-        code: 401,
-        msg: '当前账户已经被注册了',
-        result
-      })
-    } else {
-      // 未注册，插入数据
-      body.time = new Date() // 注册时间
-      body.role = 1 // 学院注册
-      UserModel.insertMany(body)
-      .then(result => {
+    .then(result => {
+      if (result) {
+        // 已经注册过了
         res.json({
-          code: 200,
-          msg: '注册成功',
+          code: 401,
+          msg: '当前账户已经被注册了',
           result
         })
-      })
-    }
-  })
-  .catch(err => {
-    console.log(err)
-    res.json({
-      code: 500,
-      err,
-      msg: '服务器异常'
+      } else {
+        // 未注册，插入数据
+        body.time = new Date() // 注册时间
+        body.role = 1 // 学院注册
+        UserModel.insertMany(body)
+          .then(result => {
+            res.json({
+              code: 200,
+              msg: '注册成功',
+              result
+            })
+          })
+      }
     })
-  })
+    .catch(err => {
+      console.log(err)
+      res.json({
+        code: 500,
+        err,
+        msg: '服务器异常'
+      })
+    })
 })
 
 // 登录接口
@@ -95,7 +95,7 @@ router.post('/register', (req, res) => {
 // 先验证用户名或手机号是否注册过，再验证密码
 router.post('/login', (req, res) => {
   var body = req.body
-  console.log(body);
+  console.log(body)
   UserModel.findOne({
     $or: [
       {
@@ -105,44 +105,44 @@ router.post('/login', (req, res) => {
         phone: body.phone
       }
     ]
-  },{})
-  .then(result => {
-    if (result) {
-      if (result.password == body.password) {
-        // token
-        const token = createToken({
-          username: result.username,
-          password: result.password,
-          phone: result.phone
-        })
-        res.json({
-          code: 200,
-          msg: '登录成功',
-          result,
-          token
-        })
+  }, {})
+    .then(result => {
+      if (result) {
+        if (result.password == body.password) {
+          // token
+          const token = createToken({
+            username: result.username,
+            password: result.password,
+            phone: result.phone
+          })
+          res.json({
+            code: 200,
+            msg: '登录成功',
+            result,
+            token
+          })
+        } else {
+          res.json({
+            code: 401,
+            msg: '密码输入错误'
+          })
+        }
       } else {
         res.json({
           code: 401,
-          msg: '密码输入错误'
+          msg: '登录失败，用户名或手机号不存在',
+          result
         })
       }
-    } else {
-      res.json({
-        code: 401,
-        msg: '登录失败，用户名或手机号不存在',
-        result
-      })
-    }
-  })
-  .catch(err => {
-    console.log(err)
-    res.json({
-      code: 500,
-      err,
-      msg: '服务器异常'
     })
-  })
+    .catch(err => {
+      console.log(err)
+      res.json({
+        code: 500,
+        err,
+        msg: '服务器异常'
+      })
+    })
 })
 
 // 发送验证码
@@ -151,35 +151,35 @@ router.post('/sendcaptcha', (req, res) => {
   UserModel.findOne({
     phone: body.phone
   })
-  .then(result => {
-    if (result) {
-      axios.get("http://121.196.235.163:3000/captcha/sent", {
-        params: body
-      }).then(rel => {
-        console.log(rel)
-        res.json({
-          code: 200,
-          msg: '成功',
-          ...rel.data,
-          rel: rel.data
+    .then(result => {
+      if (result) {
+        axios.get("http://121.196.235.163:3000/captcha/sent", {
+          params: body
+        }).then(rel => {
+          console.log(rel)
+          res.json({
+            code: 200,
+            msg: '成功',
+            ...rel.data,
+            rel: rel.data
+          })
         })
-      })
-    } else {
-      res.json({
-        code: 401,
-        msg: '手机号未注册',
-        result
-      })
-    }
-  })
-  .catch(err => {
-    console.log(err)
-    res.json({
-      code: 500,
-      err,
-      msg: '服务器异常'
+      } else {
+        res.json({
+          code: 401,
+          msg: '手机号未注册',
+          result
+        })
+      }
     })
-  })
+    .catch(err => {
+      console.log(err)
+      res.json({
+        code: 500,
+        err,
+        msg: '服务器异常'
+      })
+    })
 })
 
 // 验证验证码
@@ -240,58 +240,58 @@ router.post('/findpwd', (req, res) => {
   UserModel.findOne({
     phone: body.phone
   }, {})
-  .then(result => {
-    if (result) {
-      // 发送验证码进行验证
-      axios.get("http://121.196.235.163:3000/captcha/verify", {
-        params: body
-      }).then(rel => {
-        console.log(rel)
-        if (rel.data.code === 200) {
-          const token = createToken({
-            username: rel.username,
-            password: rel.password,
-            phone: rel.phone
-          })
-          UserModel.updateMany({
-            phone: body.phone
-          }, {
-            $set: {
-              password: body.password
-            }
-          })
-          .then(rel => {
-            console.log(rel)
-              res.json({
-                code: 200,
-                msg: '密码更改成功'
+    .then(result => {
+      if (result) {
+        // 发送验证码进行验证
+        axios.get("http://121.196.235.163:3000/captcha/verify", {
+          params: body
+        }).then(rel => {
+          console.log(rel)
+          if (rel.data.code === 200) {
+            const token = createToken({
+              username: rel.username,
+              password: rel.password,
+              phone: rel.phone
+            })
+            UserModel.updateMany({
+              phone: body.phone
+            }, {
+              $set: {
+                password: body.password
+              }
+            })
+              .then(rel => {
+                console.log(rel)
+                res.json({
+                  code: 200,
+                  msg: '密码更改成功'
+                })
               })
-          })
-        } else {
-          res.json({
-            code: 200,
-            msg: '验证失败',
-            ...rel.data,
-            rel: rel.data
-          })
-        }
-      })
-    } else {
-      res.json({
-        code: 401,
-        msg: '手机号未注册',
-        result
-      })
-    }
-  })
-  .catch(err => {
-    console.log(err)
-    res.json({
-      code: 500,
-      err,
-      msg: '服务器异常'
+          } else {
+            res.json({
+              code: 200,
+              msg: '验证失败',
+              ...rel.data,
+              rel: rel.data
+            })
+          }
+        })
+      } else {
+        res.json({
+          code: 401,
+          msg: '手机号未注册',
+          result
+        })
+      }
     })
-  })
+    .catch(err => {
+      console.log(err)
+      res.json({
+        code: 500,
+        err,
+        msg: '服务器异常'
+      })
+    })
 })
 
 // 首页获取用户信息【首页发get请求，token解密】
@@ -450,16 +450,250 @@ router.post('/subjectadd', (req, res) => {
   })
 })
 
+// 查询所有学科
 router.post('/getallsubject', (req, res) => {
   var body = req.body
+  var query = {}
+  var keyword = body.keyword
+  if (keyword) {
+    query = {
+      $or: [
+        { label: new RegExp(keyword) },
+        { subjectCode: new RegExp(keyword) },
+      ]
+    }
+  }
   decodeToken(req, res, ({ username }) => {
     findAllDataFromTable({
       model: SubjectModel,
       res,
+      query
     })
   })
 })
 
+// 删除学科
+router.post('/delsubject', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ username }) => {
+    removeDataFromTable({
+      model: SubjectModel,
+      res,
+      query: body
+    })
+  })
+})
+
+// 修改学科
+router.post('/changesubject', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ username }) => {
+    updateDataFromTable({
+      model: SubjectModel,
+      res,
+      query: {
+        _id: body._id,
+      },
+      data: body
+    })
+  })
+})
+
+// 添加班级
+router.post('/addclass', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    let result = await findOneDataFromTable({
+      res,
+      model: ClassModel,
+      query: body,
+      next: 1
+    })
+    if (result) {
+      res.json({
+        code: 401,
+        msg: '班级已经存在,请重新再试',
+        result
+      })
+    } else {
+      let xueke = await findOneDataFromTable({
+        res,
+        model: SubjectModel,
+        query: {
+          label: body.subject
+        },
+        next: 1,
+      })
+
+      // 插入班级
+      body.label = xueke.label + '_' + body.year + '_' + body.index
+      body.value = body.label.toLowerCase()
+
+      insertDataFromTable({
+        res,
+        model: ClassModel,
+        data: body,
+        msg: '添加班级成功'
+      })
+    }
+  })
+
+})
+
+// 获取班级
+router.post('/getclasses', (req, res) => {
+  var body = req.body
+  var query = {}
+  var keyword = body.keyword
+  if (keyword) {
+    query = {
+      $or: [
+        { value: new RegExp(keyword) },
+        { label: new RegExp(keyword) },
+      ]
+    }
+  }
+  decodeToken(req, res, ({ username }) => {
+    findAllDataFromTable({
+      model: ClassModel,
+      res,
+      query,
+    })
+  })
+})
+
+
+// 删除班级
+router.post('/delclasses', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ username }) => {
+    removeDataFromTable({
+      model: ClassModel,
+      res,
+      query: body
+    })
+  })
+})
+
+
+// 修改班级
+router.post('/updateclass', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    let result = await findOneDataFromTable({
+      res,
+      model: ClassModel,
+      query: {
+        subject: body.subject,
+        year: body.year,
+        index: body.index,
+      },
+      next: 1
+    })
+    if (result) {
+      res.json({
+        code: 401,
+        msg: '班级已经存在,请重新再试',
+        result
+      })
+    } else {
+      let xueke = await findOneDataFromTable({
+        res,
+        model: SubjectModel,
+        query: {
+          label: body.subject
+        },
+        next: 1,
+      })
+
+      // 插入班级
+      body.label = xueke.label + '_' + body.year + '_' + body.index
+      body.value = body.label.toLowerCase()
+
+      updateDataFromTable({
+        res,
+        model: ClassModel,
+        query: {
+          _id: body._id
+        },
+        data: body,
+        msg: '修改班级成功'
+      })
+    }
+  })
+
+})
+
+// 公告新增
+router.post('/addtoanno', (req, res) => {
+  var body = req.body
+  body.time = new Date()
+  decodeToken(req, res, async ({ username }) => {
+    insertDataFromTable({
+      model: AnnoModel,
+      res,
+      data: body
+    })
+  })
+})
+
+// 获取公告
+router.post('/getannos', (req, res) => {
+  var body = req.body
+  var query = {}
+  var keyword = body.keyword
+  var type = body.type
+  if (keyword) {
+    query.title = new RegExp(keyword)
+  }
+  if (type) {
+    query.type = type
+  }
+  decodeToken(req, res, async ({ username }) => {
+    findAllDataFromTable({
+      model: AnnoModel,
+      res,
+      query: query
+    })
+  })
+})
+
+// 删除公告
+router.post('/delannoone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    removeDataFromTable({
+      model: AnnoModel,
+      res,
+      query: { _id: body._id }
+    })
+  })
+})
+
+// 获取选中公告
+router.post('/getannoone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    findOneDataFromTable({
+      model: AnnoModel,
+      res,
+      query: { _id: body._id }
+    })
+  })
+})
+
+// 修改公告
+router.post('/changeannoone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    updateDataFromTable({
+      model: AnnoModel,
+      res,
+      query: { _id: body._id },
+      data: body
+    })
+  })
+})
 
 
 module.exports = router

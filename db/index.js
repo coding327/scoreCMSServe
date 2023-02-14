@@ -103,3 +103,71 @@ exports.findOneDataFromTable  = ({
         })
     })
 }
+
+
+exports.removeDataFromTable = ({
+  model,
+  res,
+  query,  // 条件
+  msg = '删除成功',
+  next,  // 1 进行下一个异步promise  0 已经终止执行
+}) => {
+  return new Promise((resolve, reject) => {
+    model.remove(query)
+      .then(result => {
+        if (next) {
+          resolve(result)
+        } else {
+          res.json({
+            code: 200,
+            msg: msg,
+            result
+          })
+        }
+      })
+      .catch(err => {
+        console.log(err)
+        res.json({
+          code: 500,
+          err,
+          msg: '服务器异常'
+        })
+        reject(err)
+      })
+  })
+}
+
+exports.updateDataFromTable = ({
+  model,
+  res,
+  query,  // 条件
+  data,
+  msg = '修改成功',
+  next,  // 1 进行下一个异步promise  0 已经终止执行
+}) => {
+  return new Promise((resolve, reject) => {
+    model.updateMany(query, {
+      $set: data
+    })
+      .then(result => {
+        if (next) {
+          resolve(result)
+        } else {
+          res.json({
+            code: 200,
+            msg: msg,
+            result
+          })
+        }
+      })
+      .catch(err => {
+        console.log(err)
+        res.json({
+          code: 500,
+          err,
+          msg: '服务器异常'
+        })
+        reject(err)
+      })
+  })
+}
