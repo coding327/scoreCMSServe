@@ -695,5 +695,128 @@ router.post('/changeannoone', (req, res) => {
   })
 })
 
+// 角色查询
+router.post('/getroles', (req, res) => {
+  var body = req.body
+  var query = {}
+  var keyword = body.keyword
+  if (keyword) {
+    query.title = new RegExp(keyword)
+  }
+  decodeToken(req, res, async ({ username }) => {
+    findAllDataFromTable({
+      model: RoleModel,
+      res,
+      query: query
+    })
+  })
+})
+
+// 用户添加
+router.post('/adduser', (req, res) => {
+  var body = req.body  // POST 获取的参数 
+  UserModel.findOne({  // find=[]  findOne = {}
+    $or: [
+      {
+        username: body.username
+      },
+      {
+        phone: body.phone
+      }
+    ]
+  }, {})
+    .then(result => {
+      console.log(result)
+      if (result) {
+        // 已经注册过了
+        res.json({
+          code: 401,
+          msg: '当前的账户已经存在了',
+          result,
+        })
+      } else {
+        // 直接插入数据
+        body.time = new Date()  // 注册时间
+        UserModel.insertMany(body)
+          .then(data => {
+            res.json({
+              code: 200,
+              msg: '注册成功',
+              result: data,
+            })
+          })
+      }
+    })
+    .catch(err => {
+      console.log(err)
+      res.json({
+        code: 500,
+        err,
+        msg: '服务器异常'
+      })
+    })
+})
+
+
+router.post('/getusers', (req, res) => {
+  var body = req.body
+  var query = {}
+  var keyword = body.keyword
+  var role = body.role
+  var date = body.date
+  if (keyword) {
+    query = {
+      $or: [
+        {
+          username: new RegExp(keyword)
+        },
+        {
+          phone: new RegExp(keyword)
+        }
+      ]
+    }
+  }
+  if (role) {
+    query.role = role
+  }
+  if (date) {
+    query.time = {
+      $gte: date[0],
+      $lte: date[1]
+    }
+  }
+  decodeToken(req, res, async ({ username }) => {
+    findAllDataFromTable({
+      model: UserModel,
+      res,
+      query: query
+    })
+  })
+})
+
+
+router.post('/deluserone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    removeDataFromTable({
+      model: UserModel,
+      res,
+      query: { _id: body._id }
+    })
+  })
+})
+
+router.post('/setuserone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    updateDataFromTable({
+      model: UserModel,
+      res,
+      query: { _id: body._id },
+      data: body
+    })
+  })
+})
+
 
 module.exports = router
