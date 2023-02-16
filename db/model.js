@@ -66,10 +66,21 @@ const Anno_Schema = new Schema({
   time: Date
 })
 
+// 意见
+const Advise_Schema = new Schema({
+  title: String,
+  content: String,
+  type: Array,
+  desc: String,
+  author: Object,
+  time: Date
+})
+
 exports.GoodModel = mongoose.model('goods', Good_Schema)
 exports.UserModel = mongoose.model('users', User_Schema)
 exports.RoleModel = mongoose.model('roles', Role_Schema)
 exports.SubjectModel = mongoose.model('subjects', Subject_Schema)
 exports.ClassModel = mongoose.model('classes', Class_Schema)
 exports.AnnoModel = mongoose.model('annos', Anno_Schema)
+exports.AdviseModel = mongoose.model('advises', Advise_Schema)
 

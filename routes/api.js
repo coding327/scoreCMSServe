@@ -7,7 +7,7 @@ var multer = require('multer')
 //创建express子路由
 var router = express.Router()
 // 导入表模型结构
-var { GoodModel, UserModel, RoleModel, SubjectModel, ClassModel, AnnoModel } = require('../db/model')
+var { GoodModel, UserModel, RoleModel, SubjectModel, ClassModel, AnnoModel, AdviseModel } = require('../db/model')
 // 插入数据
 var { insertDataFromTable, findAllDataFromTable, findOneDataFromTable, removeDataFromTable, updateDataFromTable } = require('../db/index')
 
@@ -701,7 +701,7 @@ router.post('/getroles', (req, res) => {
   var query = {}
   var keyword = body.keyword
   if (keyword) {
-    query.title = new RegExp(keyword)
+    query.label = new RegExp(keyword)
   }
   decodeToken(req, res, async ({ username }) => {
     findAllDataFromTable({
@@ -811,6 +811,122 @@ router.post('/setuserone', (req, res) => {
   decodeToken(req, res, async ({ username }) => {
     updateDataFromTable({
       model: UserModel,
+      res,
+      query: { _id: body._id },
+      data: body
+    })
+  })
+})
+
+// 删除
+router.post('/delroleone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ username }) => {
+    removeDataFromTable({
+      model: RoleModel,
+      res,
+      query: body
+    })
+  })
+})
+
+// 修改 
+router.post('/setroleone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ username }) => {
+    updateDataFromTable({
+      model: RoleModel,
+      res,
+      query: {
+        _id: body._id,
+      },
+      data: body
+    })
+  })
+})
+
+// 新增角色
+router.post('/addroleone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    insertDataFromTable({
+      model: RoleModel,
+      res,
+      data: body
+    })
+  })
+})
+
+
+// 新增意见
+router.post('/addadviseone', (req, res) => {
+  var body = req.body
+  body.time = new Date()
+  decodeToken(req, res, async ({ username }) => {
+    insertDataFromTable({
+      model: AdviseModel,
+      res,
+      data: body
+    })
+  })
+})
+
+router.post('/getadviselist', (req, res) => {
+  var body = req.body
+  var query = {}
+  var keyword = body.keyword
+  var type = body.type
+  var date = body.date
+  if (keyword) {
+    query.title = new RegExp(keyword)
+  }
+  if (type) {
+    query.type = type
+  }
+  if (date) {
+    query.time = {
+      $gte: date[0],
+      $lte: date[1]
+    }
+  }
+  decodeToken(req, res, async ({ username }) => {
+    findAllDataFromTable({
+      model: AdviseModel,
+      res,
+      query: query
+    })
+  })
+})
+
+router.post('/deladviseone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    removeDataFromTable({
+      model: AdviseModel,
+      res,
+      query: { _id: body._id }
+    })
+  })
+})
+
+
+router.post('/getadviseone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    findOneDataFromTable({
+      model: AdviseModel,
+      res,
+      query: { _id: body._id }
+    })
+  })
+})
+
+
+router.post('/setadviseone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    updateDataFromTable({
+      model: AdviseModel,
       res,
       query: { _id: body._id },
       data: body
