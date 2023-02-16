@@ -7,7 +7,7 @@ var multer = require('multer')
 //创建express子路由
 var router = express.Router()
 // 导入表模型结构
-var { GoodModel, UserModel, RoleModel, SubjectModel, ClassModel, AnnoModel, AdviseModel } = require('../db/model')
+var { GoodModel, UserModel, RoleModel, SubjectModel, ClassModel, AnnoModel, AdviseModel, GradeModel } = require('../db/model')
 // 插入数据
 var { insertDataFromTable, findAllDataFromTable, findOneDataFromTable, removeDataFromTable, updateDataFromTable } = require('../db/index')
 
@@ -934,5 +934,52 @@ router.post('/setadviseone', (req, res) => {
   })
 })
 
+// 新增项目成绩
+router.post('/addgradeone', (req, res) => {
+  var body = req.body
+  body.time = new Date()
+  decodeToken(req, res, async ({ username }) => {
+    let result = await findOneDataFromTable({
+      query: { username },
+      res,
+      model: UserModel,
+      next: 1,
+    })
+    body.subject = result.subject
+    body.class = result.class
+    body.author = result
+
+    insertDataFromTable({
+      model: GradeModel,
+      res,
+      data: body
+    })
+  })
+})
+
+
+router.post('/getmygrades', (req, res) => {
+  decodeToken(req, res, async ({ username }) => {
+    findAllDataFromTable({
+      model: GradeModel,
+      res,
+      query: {
+        'author.username': username
+      }
+    })
+  })
+})
+
+router.post('/getallgrades', (req, res) => {
+  decodeToken(req, res, async ({ username }) => {
+    findAllDataFromTable({
+      model: GradeModel,
+      res,
+      query: {
+
+      }
+    })
+  })
+})
 
 module.exports = router

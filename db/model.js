@@ -29,7 +29,10 @@ const User_Schema = new Schema({
   email: String,
   avatar: String,
   role: Number, // 角色权限 1 学院 2 讲师 3 管理员
-  time: Date // 记录注册插入数据的时间
+  time: Date, // 记录注册插入数据的时间
+  nickname: String, // 昵称
+  class: String, // 班级
+  subject: String // 学科
 })
 
 // 角色
@@ -76,6 +79,22 @@ const Advise_Schema = new Schema({
   time: Date
 })
 
+// 成绩
+const Grade_Schema = new Schema({
+  name: String,
+  address: String,
+  jishu: String,
+  lightdot: String,
+  bug: String,
+  detail: String,
+  type: String,
+  author: Object,
+  time: Date,
+  score: Number, // 老师打分的
+  subject: String,
+  class: String,
+})
+
 exports.GoodModel = mongoose.model('goods', Good_Schema)
 exports.UserModel = mongoose.model('users', User_Schema)
 exports.RoleModel = mongoose.model('roles', Role_Schema)
@@ -83,4 +102,4 @@ exports.SubjectModel = mongoose.model('subjects', Subject_Schema)
 exports.ClassModel = mongoose.model('classes', Class_Schema)
 exports.AnnoModel = mongoose.model('annos', Anno_Schema)
 exports.AdviseModel = mongoose.model('advises', Advise_Schema)
-
+exports.GradeModel = mongoose.model('grades', Grade_Schema)
