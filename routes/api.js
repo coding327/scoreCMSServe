@@ -10,6 +10,7 @@ var router = express.Router()
 var { GoodModel, UserModel, RoleModel, SubjectModel, ClassModel, AnnoModel, AdviseModel, GradeModel } = require('../db/model')
 // 插入数据
 var { insertDataFromTable, findAllDataFromTable, findOneDataFromTable, removeDataFromTable, updateDataFromTable } = require('../db/index')
+const { decode } = require('jsonwebtoken')
 
 // api测试接口
 // /api/goodlist
@@ -959,25 +960,134 @@ router.post('/addgradeone', (req, res) => {
 
 
 router.post('/getmygrades', (req, res) => {
+  var body = req.body
+  var query = {}
+  var type = body.type
+  var keyword = body.keyword
+  var date = body.date
+  if (type) {
+    query.type = type
+  }
+  if (keyword) {
+    query.name = new RegExp(keyword)
+  }
+  if (date) {
+    query.time = {
+      $gte: date[0],
+      $lte: date[1]
+    }
+  }
+
   decodeToken(req, res, async ({ username }) => {
     findAllDataFromTable({
       model: GradeModel,
       res,
       query: {
+        ...query,
         'author.username': username
       }
     })
   })
 })
 
+
 router.post('/getallgrades', (req, res) => {
+  var body = req.body
+  var query = {}
+  var type = body.type
+  var keyword = body.keyword
+  var banji = body.class  // 班级
+  var score = body.score || ''
+  if (keyword) {
+    query = {
+      'author.username': new RegExp(keyword)
+    }
+  }
+  if (type) {
+    query.type = type
+  }
+  if (banji) {
+    query.class = banji
+  }
+  if (score) {
+    switch (score) {
+      case "A":
+        query.score = {
+          $gte: 90
+        }
+        break
+      case "B":
+        query.score = {
+          $gte: 80,
+          $lt: 90
+        }
+        break
+      case "C":
+        query.score = {
+          $gte: 70,
+          $lt: 80
+        }
+        break
+      case "D":
+        query.score = {
+          $gte: 60,
+          $lt: 70
+        }
+        break
+      case "E":
+        query.score = {
+          $lt: 60
+        }
+        break
+      case "F":
+        query.score = ''
+        break
+      default:
+        break
+    }
+  }
   decodeToken(req, res, async ({ username }) => {
     findAllDataFromTable({
       model: GradeModel,
       res,
-      query: {
+      query: query,
+    })
+  })
+})
 
-      }
+
+router.post('/delgradeone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    removeDataFromTable({
+      model: GradeModel,
+      res,
+      query: { _id: body._id }
+    })
+  })
+})
+
+router.post('/getgradeone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({ username }) => {
+    findOneDataFromTable({
+      model: GradeModel,
+      res,
+      query: { _id: body._id }
+    })
+  })
+})
+
+router.post('/setgradeone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, async ({username}) => {
+    updateDataFromTable({
+      model: GradeModel,
+      res,
+      query: {
+        _id: body._id
+      },
+      data: body
     })
   })
 })
