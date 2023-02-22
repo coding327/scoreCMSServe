@@ -107,8 +107,8 @@ const AppUser_Schema = new Schema({
   password: String,
   dbpass: String,
   email: String,
-  avatar: String,  // 头像信息 
-  role: Number, // 权限  1 学员 2. 讲师 3.管理员 
+  avatar: String,  // 头像信息
+  role: Number, // 权限  1 学员 2. 讲师 3.管理员
   time: Date,
   nickname: String,
   class: String,

@@ -36,6 +36,7 @@ router.post("/finduser", (req, res) => {
 
 router.post("/register", (req, res) => {
   var body = req.body
+  console.log(body)
   body.time = new Date
   insertDataFromTable({
     model: AppUserModel,
@@ -181,11 +182,12 @@ router.post('/findpwd', (req, res) => {
               password: rel.password,
               phone: rel.phone
             })
-            UserModel.updateMany({
+            AppUserModel.updateMany({
               phone: body.phone
             }, {
               $set: {
-                password: body.password
+                password: body.password,
+                dbpass: body.dbpass
               }
             })
               .then(rel => {
