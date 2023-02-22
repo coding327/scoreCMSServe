@@ -95,6 +95,10 @@ const Grade_Schema = new Schema({
   class: String,
 })
 
+const banner_Schema = new Schema({
+  imgurl: String
+})
+
 exports.GoodModel = mongoose.model('goods', Good_Schema)
 exports.UserModel = mongoose.model('users', User_Schema)
 exports.RoleModel = mongoose.model('roles', Role_Schema)
@@ -103,3 +107,4 @@ exports.ClassModel = mongoose.model('classes', Class_Schema)
 exports.AnnoModel = mongoose.model('annos', Anno_Schema)
 exports.AdviseModel = mongoose.model('advises', Advise_Schema)
 exports.GradeModel = mongoose.model('grades', Grade_Schema)
+exports.BannerModel = mongoose.model('banners', banner_Schema)
