@@ -95,8 +95,24 @@ const Grade_Schema = new Schema({
   class: String,
 })
 
+
+// react移动端
 const banner_Schema = new Schema({
   imgurl: String
+})
+
+const AppUser_Schema = new Schema({
+  username: String,
+  phone: String,
+  password: String,
+  dbpass: String,
+  email: String,
+  avatar: String,  // 头像信息 
+  role: Number, // 权限  1 学员 2. 讲师 3.管理员 
+  time: Date,
+  nickname: String,
+  class: String,
+  subject: String
 })
 
 exports.GoodModel = mongoose.model('goods', Good_Schema)
@@ -108,3 +124,4 @@ exports.AnnoModel = mongoose.model('annos', Anno_Schema)
 exports.AdviseModel = mongoose.model('advises', Advise_Schema)
 exports.GradeModel = mongoose.model('grades', Grade_Schema)
 exports.BannerModel = mongoose.model('banners', banner_Schema)
+exports.AppUserModel = mongoose.model('appusers', AppUser_Schema)
