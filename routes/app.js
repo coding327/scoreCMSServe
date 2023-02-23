@@ -17,6 +17,7 @@ router.get('/test', (req, res) => {
   })
 })
 
+// 广告
 router.get('/banners', (req, res) => {
   findAllDataFromTable({
     model: BannerModel,
@@ -25,6 +26,7 @@ router.get('/banners', (req, res) => {
   })
 })
 
+// 查找用户
 router.post("/finduser", (req, res) => {
   var body = req.body
   findOneDataFromTable({
@@ -34,6 +36,7 @@ router.post("/finduser", (req, res) => {
   })
 })
 
+// 注册接口
 router.post("/register", (req, res) => {
   var body = req.body
   console.log(body)
@@ -45,6 +48,7 @@ router.post("/register", (req, res) => {
   })
 })
 
+// 登录接口
 router.post('/login', async (req, res) => {
   var body = req.body
   let result = await findOneDataFromTable({
@@ -111,7 +115,7 @@ router.post('/sendcaptcha', (req, res) => {
     })
 })
 
-// 验证验证码
+// 验证验证码[合并到找回密码中了]
 router.post('/checkcaptcha', (req, res) => {
   var body = req.body
   AppUserModel.findOne({
@@ -163,7 +167,7 @@ router.post('/checkcaptcha', (req, res) => {
     })
 })
 
-// 找回密码
+// 找回密码【包含了验证验证码】
 router.post('/findpwd', (req, res) => {
   var body = req.body
   AppUserModel.findOne({
