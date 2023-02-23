@@ -78,6 +78,17 @@ router.post('/login', async (req, res) => {
   }
 })
 
+// 生成token
+router.post("/gettoken", (req, res) => {
+  var body = req.body
+  const token = createToken(body)
+  res.json({
+    code: 200,
+    msg: '成功',
+    token
+  })
+})
+
 // 发送验证码
 router.post('/sendcaptcha', (req, res) => {
   var body = req.body
@@ -226,6 +237,56 @@ router.post('/findpwd', (req, res) => {
         msg: '服务器异常'
       })
     })
+})
+
+// 获取用户信息
+router.get('/getuserinfo', (req, res) => {
+  // 根据 token username phone
+  decodeToken(req, res, async ({ phone }) => {
+    findOneDataFromTable({
+      model: AppUserModel,
+      query: { phone },
+      res,
+    })
+  })
+})
+
+// 上传文件
+const storage = multer.diskStorage({
+  //保存路径
+  destination: function (req, file, cb) {
+    cb(null, 'public/upload')
+    //注意这里的文件路径,不是相对路径，直接填写从项目根路径开始写就行了
+  },
+  //保存在 destination 中的文件名
+  filename: function (req, file, cb) {
+    cb(null, "FX2301" + '-' + Date.now() + '-' + file.originalname)
+  }
+})
+const upload = multer({ storage: storage }).any()   // 任何文件格式
+
+// 上传文件
+router.post('/uplodafile', upload, (req, res) => {
+  var path = req.files[0].path
+  res.json({
+    code: 200,
+    msg: '上传成功',
+    path,
+    result: path,
+  })
+})
+
+// 修改用户信息
+router.post("/changeuserinfo", (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    updateDataFromTable({
+      model: AppUserModel,
+      res,
+      query: { phone },
+      data: body
+    })
+  })
 })
 
 module.exports = router
