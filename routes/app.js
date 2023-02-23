@@ -260,7 +260,7 @@ const storage = multer.diskStorage({
   },
   //保存在 destination 中的文件名
   filename: function (req, file, cb) {
-    cb(null, "FX2301" + '-' + Date.now() + '-' + file.originalname)
+    cb(null, "cake" + '-' + Date.now() + '-' + file.originalname)
   }
 })
 const upload = multer({ storage: storage }).any()   // 任何文件格式
