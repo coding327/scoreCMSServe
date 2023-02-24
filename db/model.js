@@ -115,6 +115,20 @@ const AppUser_Schema = new Schema({
   subject: String
 })
 
+const AppTravel_Schema = new Schema({
+  title: String,
+  address: String,
+  date: Date,
+  tags: Array,
+  imgs: Array,
+  content: String,
+  time: Date, // 提交时间
+  author: Object,
+  hot: Number, // 热度值
+  likes: Number,
+  collections: Number
+})
+
 exports.GoodModel = mongoose.model('goods', Good_Schema)
 exports.UserModel = mongoose.model('users', User_Schema)
 exports.RoleModel = mongoose.model('roles', Role_Schema)
@@ -125,3 +139,4 @@ exports.AdviseModel = mongoose.model('advises', Advise_Schema)
 exports.GradeModel = mongoose.model('grades', Grade_Schema)
 exports.BannerModel = mongoose.model('banners', banner_Schema)
 exports.AppUserModel = mongoose.model('appusers', AppUser_Schema)
+exports.AppTravelModel = mongoose.model('apptravels', AppTravel_Schema)

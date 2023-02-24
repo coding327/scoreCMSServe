@@ -1,6 +1,6 @@
 var express = require('express')
 var router = express.Router()
-var { BannerModel, AppUserModel } = require('../db/model')
+var { BannerModel, AppUserModel, AppTravelModel } = require('../db/model')
 var { createToken, decodeToken } = require('../utils/token')
 var axios = require('axios')
 var multer = require('multer')
@@ -298,6 +298,42 @@ router.post("/changeuserinfo", (req, res) => {
       res,
       query: { phone },
       data: body
+    })
+  })
+})
+
+// 添加我的旅游记录
+router.post('/addtravels', (req, res) => {
+  var body = req.body
+  body.time = new Date()
+  decodeToken(req, res, async ({phone}) => {
+    let result = await findOneDataFromTable({
+      model: AppUserModel,
+      res,
+      query: {phone},
+      next: 1
+    })
+    body.author = result
+    // 给个默认热度值5
+    body.hot = 5
+    // 插入数据
+    insertDataFromTable({
+      model: AppTravelModel,
+      res,
+      data: body
+    })
+  })
+})
+
+// 获取我的旅游记录
+router.post('/getmytravels', (req, res) => {
+  decodeToken(req, res, ({phone}) => {
+    findAllDataFromTable({
+      model: AppTravelModel,
+      res,
+      query: {
+        'author.phone': phone
+      }
     })
   })
 })
