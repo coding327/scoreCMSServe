@@ -89,6 +89,19 @@ router.post("/gettoken", (req, res) => {
   })
 })
 
+// 修改密码
+router.post('/changepass', (req, res) => {
+  var body = req.body
+  updateDataFromTable({
+    model: AppUserModel,
+    res,
+    query: { phone: body.phone },
+    data: {
+      password: body.password
+    }
+  })
+})
+
 // 发送验证码
 router.post('/sendcaptcha', (req, res) => {
   var body = req.body
