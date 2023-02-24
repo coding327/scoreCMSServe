@@ -306,11 +306,11 @@ router.post("/changeuserinfo", (req, res) => {
 router.post('/addtravels', (req, res) => {
   var body = req.body
   body.time = new Date()
-  decodeToken(req, res, async ({phone}) => {
+  decodeToken(req, res, async ({ phone }) => {
     let result = await findOneDataFromTable({
       model: AppUserModel,
       res,
-      query: {phone},
+      query: { phone },
       next: 1
     })
     body.author = result
@@ -327,7 +327,7 @@ router.post('/addtravels', (req, res) => {
 
 // 获取我的旅游记录
 router.post('/getmytravels', (req, res) => {
-  decodeToken(req, res, ({phone}) => {
+  decodeToken(req, res, ({ phone }) => {
     findAllDataFromTable({
       model: AppTravelModel,
       res,
@@ -335,6 +335,36 @@ router.post('/getmytravels', (req, res) => {
         'author.phone': phone
       }
     })
+  })
+})
+
+// 通过id获取旅游
+router.post("/gettravelbyid", (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    findOneDataFromTable({
+      model: AppTravelModel,
+      res,
+      query: {
+        _id: body._id
+      },
+    })
+  })
+})
+
+// 获取所有的旅游
+router.post("/getalltravels", (req, res) => {
+  var body = req.body
+  // 分页
+  // limit
+  // pageSize
+  // 过滤
+  findAllDataFromTable({
+    model: AppTravelModel,
+    res,
+    sort: {
+      date: -1,
+    }
   })
 })
 
