@@ -303,7 +303,7 @@ router.post("/changeuserinfo", (req, res) => {
 })
 
 // 添加我的旅游记录
-router.post('/addtravels', (req, res) => {
+router.post("/addtravels", (req, res) => {
   var body = req.body
   body.time = new Date()
   decodeToken(req, res, async ({ phone }) => {
@@ -314,9 +314,7 @@ router.post('/addtravels', (req, res) => {
       next: 1
     })
     body.author = result
-    // 给个默认热度值5
     body.hot = 5
-    // 插入数据
     insertDataFromTable({
       model: AppTravelModel,
       res,
@@ -333,6 +331,9 @@ router.post('/getmytravels', (req, res) => {
       res,
       query: {
         'author.phone': phone
+      },
+      sort: {
+        'time': -1
       }
     })
   })
@@ -341,14 +342,12 @@ router.post('/getmytravels', (req, res) => {
 // 通过id获取旅游
 router.post("/gettravelbyid", (req, res) => {
   var body = req.body
-  decodeToken(req, res, ({ phone }) => {
-    findOneDataFromTable({
-      model: AppTravelModel,
-      res,
-      query: {
-        _id: body._id
-      },
-    })
+  findOneDataFromTable({
+    model: AppTravelModel,
+    res,
+    query: {
+      _id: body._id
+    },
   })
 })
 
@@ -364,6 +363,69 @@ router.post("/getalltravels", (req, res) => {
     res,
     sort: {
       date: -1,
+    }
+  })
+})
+
+router.post("/gettravelbanners", (req, res) => {
+  findAllDataFromTable({
+    model: AppTravelModel,
+    res,
+    sort: {
+      hot: -1
+    },
+    limit: 5
+  })
+})
+
+router.post('/gethomelist', async (req, res) => {
+  var body = req.body
+  var sort = {
+    hot: -1   // 降序  1 热度
+  }
+  var type = body.type  // 2 最新 时间排序
+  var page = body.page || 1
+  var pageSize = body.pageSize || 10
+  if (type == '2') {
+    sort = {
+      time: -1
+    }
+  }
+  let result = await findAllDataFromTable({
+    model: AppTravelModel,
+    res,
+    next: 1
+  })
+
+  let data = await findAllDataFromTable({
+    model: AppTravelModel,
+    res,
+    sort: sort,
+    limit: pageSize,
+    skip: (page - 1) * pageSize,
+    next: 1
+  })
+  res.json({
+    code: 200,
+    msg: '查询成功',
+    total: result.length,
+    page,
+    result: data,
+    pageSize
+  })
+})
+
+// 每次进来一次，hot热度加1
+router.post("/changehot", (req, res) => {
+  var body = req.body
+  updateDataFromTable({
+    res,
+    model: AppTravelModel,
+    query: {
+      _id: body._id
+    },
+    data: {
+      hot: body.hot
     }
   })
 })
