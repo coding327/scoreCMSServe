@@ -1,6 +1,6 @@
 var express = require('express')
 var router = express.Router()
-var { BannerModel, AppUserModel, AppTravelModel } = require('../db/model')
+var { BannerModel, AppUserModel, AppTravelModel, AppLikeModel, AppCollectModel } = require('../db/model')
 var { createToken, decodeToken } = require('../utils/token')
 var axios = require('axios')
 var multer = require('multer')
@@ -416,7 +416,7 @@ router.post('/gethomelist', async (req, res) => {
 })
 
 // 每次进来一次，hot热度加1
-router.post("/changehot", (req, res) => {
+router.post("/changetravels", (req, res) => {
   var body = req.body
   updateDataFromTable({
     res,
@@ -424,9 +424,82 @@ router.post("/changehot", (req, res) => {
     query: {
       _id: body._id
     },
-    data: {
-      hot: body.hot
+    data: body
+  })
+})
+
+// 判断是否已经点赞 获取点赞列表
+router.post('/getlikelist', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    var query = { tid: body.tid }
+    if (body.flag) {
+      query.phone = phone
     }
+    findAllDataFromTable({
+      model: AppLikeModel,
+      res,
+      query: query
+    })
+  })
+})
+
+router.post('/addlikeone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    insertDataFromTable({
+      model: AppLikeModel,
+      res,
+      data: body
+    })
+  })
+})
+
+router.post('/dellikeone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    removeDataFromTable({
+      model: AppLikeModel,
+      res,
+      query: body
+    })
+  })
+})
+
+router.post('/getcollectlist', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    var query = { tid: body.tid }
+    if (body.flag) {
+      query.phone = phone
+    }
+    findAllDataFromTable({
+      model: AppCollectModel,
+      res,
+      query: query
+    })
+  })
+})
+
+router.post('/addcollectone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    insertDataFromTable({
+      model: AppCollectModel,
+      res,
+      data: body
+    })
+  })
+})
+
+router.post('/delcollectone', (req, res) => {
+  var body = req.body
+  decodeToken(req, res, ({ phone }) => {
+    removeDataFromTable({
+      model: AppCollectModel,
+      res,
+      query: body
+    })
   })
 })
 

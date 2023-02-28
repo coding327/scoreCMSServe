@@ -129,6 +129,20 @@ const AppTravel_Schema = new Schema({
   collections: Number
 })
 
+const AppLike_Schema = new Schema({
+  tid: String,
+  phone: String,
+  userInfo: Object,
+  travel: Object
+})
+
+const AppCollect_Schema = new Schema({
+  tid: String,
+  phone: String,
+  userInfo: Object,
+  travel: Object
+})
+
 exports.GoodModel = mongoose.model('goods', Good_Schema)
 exports.UserModel = mongoose.model('users', User_Schema)
 exports.RoleModel = mongoose.model('roles', Role_Schema)
@@ -140,3 +154,5 @@ exports.GradeModel = mongoose.model('grades', Grade_Schema)
 exports.BannerModel = mongoose.model('banners', banner_Schema)
 exports.AppUserModel = mongoose.model('appusers', AppUser_Schema)
 exports.AppTravelModel = mongoose.model('apptravels', AppTravel_Schema)
+exports.AppLikeModel = mongoose.model('applikes', AppLike_Schema)
+exports.AppCollectModel = mongoose.model('appcollects', AppCollect_Schema)
