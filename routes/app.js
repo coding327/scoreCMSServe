@@ -428,18 +428,21 @@ router.post("/changetravels", (req, res) => {
   })
 })
 
-// 判断是否已经点赞 获取点赞列表
+// 判断是否已经点赞  获取点赞列表
 router.post('/getlikelist', (req, res) => {
   var body = req.body
+  var sort = req.query
   decodeToken(req, res, ({ phone }) => {
-    var query = { tid: body.tid }
-    if (body.flag) {
-      query.phone = phone
-    }
+
+    var query = {}
+    if (body.tid) query.tid = body.tid
+    if (body.flag) query.phone = phone
+
     findAllDataFromTable({
       model: AppLikeModel,
       res,
-      query: query
+      query: query,
+      sort,
     })
   })
 })
@@ -466,17 +469,19 @@ router.post('/dellikeone', (req, res) => {
   })
 })
 
+// 判断是否已经点赞  获取点赞列表
 router.post('/getcollectlist', (req, res) => {
   var body = req.body
+  var sort = req.query
   decodeToken(req, res, ({ phone }) => {
-    var query = { tid: body.tid }
-    if (body.flag) {
-      query.phone = phone
-    }
+    var query = {}
+    if (body.tid) query.tid = body.tid
+    if (body.flag) query.phone = phone
     findAllDataFromTable({
       model: AppCollectModel,
       res,
-      query: query
+      query: query,
+      sort,
     })
   })
 })
