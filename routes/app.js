@@ -428,7 +428,7 @@ router.post("/changetravels", (req, res) => {
   })
 })
 
-// 判断是否已经点赞  获取点赞列表
+// 判断是否已经点赞 获取点赞列表
 router.post('/getlikelist', (req, res) => {
   var body = req.body
   var sort = req.query
