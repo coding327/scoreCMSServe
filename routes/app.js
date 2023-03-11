@@ -39,7 +39,6 @@ router.post("/finduser", (req, res) => {
 // 注册接口
 router.post("/register", (req, res) => {
   var body = req.body
-  console.log(body)
   body.time = new Date
   insertDataFromTable({
     model: AppUserModel,
